@@ -234,8 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'Full-Stack Web Developer',
       'Software Engineer',
       'Problem Solver',
-      'Code Enthusiast',
       'Multifaceted Individual',
+      'Avid Adventurer',
       'Passionate Learner',
     ]);
   }
