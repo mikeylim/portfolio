@@ -9,7 +9,7 @@
 			content="Mike Dohyun Lim — Full-Stack Web Developer portfolio. Building modern, scalable web applications." />
 
 		<!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
 		<!-- Tailwind CSS CDN -->
 		<script src="https://cdn.tailwindcss.com"></script>
@@ -23,6 +23,18 @@
 
 		<!-- Custom CSS -->
 		<link rel="stylesheet" href="style.css" />
+
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-FTD9T0K51W"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+
+			gtag("config", "G-FTD9T0K51W");
+		</script>
 	</head>
 	<body>
 		<!-- ===== Navbar ===== -->
@@ -239,9 +251,9 @@
 						<p
 							class="text-base md:text-lg mb-8 max-w-xl leading-relaxed"
 							style="color: var(--text-secondary)">
-							I build modern, scalable software with clean code and thoughtful
-							design. From web apps to mobile and beyond — passionate about turning
-							complex problems into simple, elegant solutions.
+							I build modern, scalable software with clean code and thoughtful design.
+							From web apps to mobile and beyond — passionate about turning complex
+							problems into simple, elegant solutions.
 						</p>
 						<div class="flex flex-wrap gap-4">
 							<a href="#projects" class="btn-primary">
@@ -882,7 +894,7 @@
 						<div class="space-y-6">
 							<a
 								href="mailto:mikedohyunlim@gmail.com"
-								style="text-decoration: none; display: block;">
+								style="text-decoration: none; display: block">
 								<div class="flex items-start gap-4">
 									<div class="icon-link" style="flex-shrink: 0">
 										<svg
@@ -906,7 +918,9 @@
 											style="color: var(--text-primary)">
 											Email
 										</h3>
-										<span style="color: var(--accent)">mikedohyunlim@gmail.com</span>
+										<span style="color: var(--accent)"
+											>mikedohyunlim@gmail.com</span
+										>
 									</div>
 								</div>
 							</a>
@@ -915,7 +929,7 @@
 								href="https://github.com/mikeylim"
 								target="_blank"
 								rel="noopener noreferrer"
-								style="color: var(--accent); text-decoration: none; display: block;">
+								style="color: var(--accent); text-decoration: none; display: block">
 								<div class="flex items-start gap-4">
 									<div class="icon-link" style="flex-shrink: 0">
 										<svg
@@ -938,7 +952,9 @@
 											style="color: var(--text-primary)">
 											GitHub
 										</h3>
-										<span style="color: var(--accent)">github.com/mikeylim</span>
+										<span style="color: var(--accent)"
+											>github.com/mikeylim</span
+										>
 									</div>
 								</div>
 							</a>
@@ -947,7 +963,7 @@
 								href="https://www.linkedin.com/in/mikedohyunlim/"
 								target="_blank"
 								rel="noopener noreferrer"
-								style="text-decoration: none; display: block;">
+								style="text-decoration: none; display: block">
 								<div class="flex items-start gap-4">
 									<div class="icon-link" style="flex-shrink: 0">
 										<svg
@@ -972,7 +988,9 @@
 											style="color: var(--text-primary)">
 											LinkedIn
 										</h3>
-										<span style="color: var(--accent)">linkedin.com/in/mikedohyunlim</span>
+										<span style="color: var(--accent)"
+											>linkedin.com/in/mikedohyunlim</span
+										>
 									</div>
 								</div>
 							</a>
