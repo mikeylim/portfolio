@@ -43,6 +43,18 @@ body {
   line-height: 1.6;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ===== Navbar ===== */
 .navbar {
   background-color: var(--bg-primary);
@@ -229,6 +241,352 @@ section {
   color: var(--accent);
   border: 1px solid var(--border);
   transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ===== Project Round Slider ===== */
+.project-round-slider {
+  margin-top: 2rem;
+  outline: none;
+}
+
+.project-round-button {
+  position: absolute;
+  top: 50%;
+  z-index: 1700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.74);
+  color: var(--text-primary);
+  cursor: pointer;
+  transform: translateY(-50%);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.project-round-button:hover,
+.project-round-button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  background-color: rgba(15, 23, 42, 0.92);
+  transform: translateY(-50%) scale(1.04);
+  outline: none;
+}
+
+.project-round-button--prev {
+  left: 1.1rem;
+}
+
+.project-round-button--next {
+  right: 1.1rem;
+}
+
+.project-round-stage {
+  position: relative;
+  height: clamp(35rem, 55vw, 39rem);
+  min-height: 35rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  perspective: 1200px;
+  perspective-origin: 50% 46%;
+  background:
+    linear-gradient(120deg, rgba(56, 189, 248, 0.1), transparent 38%),
+    linear-gradient(240deg, rgba(99, 102, 241, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(30, 41, 59, 0.86), rgba(15, 23, 42, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 80px rgba(0, 0, 0, 0.18);
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.project-round-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 58px 58px;
+  mask-image: radial-gradient(ellipse at center, black 16%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 16%, transparent 72%);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.project-round-stage::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 3.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.08), transparent);
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.project-round-slider:focus-visible .project-round-stage {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px rgba(56, 189, 248, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.project-round-orbit {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 38%;
+  height: 38%;
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  border-radius: 50%;
+  transform: rotateX(64deg);
+  transform-origin: center;
+  opacity: 0.72;
+  pointer-events: none;
+  animation: projectOrbitPulse 7s ease-in-out infinite;
+}
+
+.project-round-orbit::before,
+.project-round-orbit::after {
+  content: '';
+  position: absolute;
+  inset: 14%;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 50%;
+}
+
+.project-round-orbit::after {
+  inset: 28%;
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+@keyframes projectOrbitPulse {
+  0%, 100% {
+    opacity: 0.58;
+  }
+
+  50% {
+    opacity: 0.82;
+  }
+}
+
+@property --project-active-pop-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes projectSelectedExpand {
+  0% {
+    --project-active-pop-scale: 0.97;
+  }
+
+  52% {
+    --project-active-pop-scale: 1.075;
+  }
+
+  100% {
+    --project-active-pop-scale: 1;
+  }
+}
+
+.project-round-track {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform-style: preserve-3d;
+}
+
+.project-round-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(74vw, 22.75rem);
+  height: 31.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0)),
+    var(--bg-card);
+  box-shadow: 0 24px 70px var(--shadow);
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.35s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    filter 0.25s ease;
+  will-change: transform, opacity;
+}
+
+.project-round-card.is-active {
+  border-color: var(--accent);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(56, 189, 248, 0.18),
+    0 0 50px rgba(56, 189, 248, 0.14);
+  cursor: default;
+}
+
+.project-round-card.is-active.is-expanding {
+  animation: projectSelectedExpand 0.42s cubic-bezier(0.2, 0.85, 0.25, 1.2);
+}
+
+.project-round-card.is-far {
+  pointer-events: none;
+}
+
+.project-round-card:not(.is-active) {
+  filter: saturate(0.78) brightness(0.82);
+}
+
+.project-round-card .card-image {
+  height: 10.75rem;
+}
+
+.project-round-card .card-image img {
+  pointer-events: none;
+  user-select: none;
+}
+
+.project-round-card .p-5 {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 10.75rem);
+}
+
+.project-round-card h3 {
+  font-size: 1.25rem;
+}
+
+.project-round-card .p-5 > .flex:last-child {
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.project-round-card .btn-primary,
+.project-round-card .btn-secondary {
+  min-height: 2.25rem;
+  white-space: nowrap;
+}
+
+.project-round-card:not(.is-active) a {
+  pointer-events: none;
+}
+
+.project-round-slider.is-dragging .project-round-card {
+  cursor: grabbing;
+  transition: none;
+}
+
+[data-theme="light"] .project-round-stage {
+  background:
+    linear-gradient(120deg, rgba(2, 132, 199, 0.1), transparent 38%),
+    linear-gradient(240deg, rgba(79, 70, 229, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.9));
+}
+
+[data-theme="light"] .project-round-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.5)),
+    var(--bg-card);
+}
+
+@media (max-width: 900px) {
+  .project-round-stage {
+    height: 36rem;
+    min-height: 36rem;
+    perspective: 950px;
+  }
+
+  .project-round-card {
+    width: min(82vw, 21.25rem);
+    height: 30.75rem;
+  }
+
+  .project-round-card .card-image {
+    height: 9.75rem;
+  }
+
+  .project-round-card .p-5 {
+    height: calc(100% - 9.75rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .project-round-slider {
+    margin-top: 1.5rem;
+  }
+
+  .project-round-stage {
+    height: 34rem;
+    min-height: 34rem;
+  }
+
+  .project-round-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .project-round-button--prev {
+    left: 0.6rem;
+  }
+
+  .project-round-button--next {
+    right: 0.6rem;
+  }
+
+  .project-round-card {
+    width: min(88vw, 20rem);
+    height: 30.5rem;
+  }
+
+  .project-round-card .card-image {
+    height: 9.75rem;
+  }
+
+  .project-round-card .p-5 {
+    height: calc(100% - 9.75rem);
+    padding: 1rem !important;
+  }
+
+  .project-round-card h3 {
+    font-size: 1.125rem;
+  }
+
+  .project-round-card p {
+    font-size: 0.82rem;
+  }
+
+  .project-round-card .tech-tag {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-round-orbit,
+  .project-round-card,
+  .project-round-card p,
+  .project-round-card .p-5 > .flex,
+  .project-round-button {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ===== Skill Tags ===== */

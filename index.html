@@ -342,10 +342,58 @@
 					<p class="section-subtitle">A selection of things I've built.</p>
 				</div>
 
-				<div class="grid md:grid-cols-2 gap-6">
+				<div
+					id="project-round-slider"
+					class="project-round-slider reveal reveal-delay-1"
+					data-project-round-slider
+					role="region"
+					aria-roledescription="carousel"
+					aria-label="Featured projects"
+					tabindex="0">
+					<div class="project-round-stage" data-project-stage>
+						<div class="project-round-orbit" aria-hidden="true"></div>
+						<button
+							type="button"
+							class="project-round-button project-round-button--prev"
+							data-project-prev
+							aria-label="Show previous project">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="M15 18l-6-6 6-6" />
+							</svg>
+						</button>
+						<button
+							type="button"
+							class="project-round-button project-round-button--next"
+							data-project-next
+							aria-label="Show next project">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="M9 18l6-6-6-6" />
+							</svg>
+						</button>
+						<ul class="project-round-track" data-project-track>
 					<!-- HireON -->
-					<div
-						class="card reveal reveal-delay-1"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/HireON">
 						<div class="card-image">
 							<img
@@ -426,11 +474,11 @@
 								</a>
 							</div>
 						</div>
-					</div>
+					</li>
 
 					<!-- iEventer -->
-					<div
-						class="card reveal reveal-delay-2"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/iEventer">
 						<div class="card-image">
 							<img
@@ -462,7 +510,7 @@
 								<span class="tech-tag">TypeScript</span>
 								<span class="tech-tag">TailwindCSS</span>
 								<span class="tech-tag">Drizzle ORM</span>
-								<span class="tech-tag">PostgreSQL,</span>
+								<span class="tech-tag">PostgreSQL</span>
 							</div>
 							<div class="flex gap-3">
 								<a
@@ -511,11 +559,11 @@
 								</a>
 							</div>
 						</div>
-					</div>
+					</li>
 
 					<!-- HirezzAI -->
-					<div
-						class="card reveal reveal-delay-2"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/HirezzAI">
 						<div class="card-image">
 							<img
@@ -595,11 +643,11 @@
 								</a>
 							</div>
 						</div>
-					</div>
+					</li>
 
 					<!-- PopcornBuddy -->
-					<div
-						class="card reveal reveal-delay-2"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/PopcornBuddy">
 						<div class="card-image">
 							<img
@@ -679,11 +727,11 @@
 								</a>
 							</div>
 						</div>
-					</div>
+					</li>
 
 					<!-- Mooder -->
-					<div
-						class="card reveal reveal-delay-1"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/mooder">
 						<div class="card-image">
 							<img
@@ -739,11 +787,11 @@
 								</a>
 							</div>
 						</div>
-					</div>
+					</li>
 
 					<!-- Momukji -->
-					<div
-						class="card reveal reveal-delay-2"
+					<li
+						class="project-round-card"
 						data-href="https://github.com/mikeylim/momukji">
 						<div class="card-image">
 							<img
@@ -800,7 +848,10 @@
 								</a>
 							</div>
 						</div>
+					</li>
+						</ul>
 					</div>
+					<p class="sr-only" data-project-status aria-live="polite"></p>
 				</div>
 			</div>
 		</section>

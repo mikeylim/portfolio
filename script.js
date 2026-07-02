@@ -206,6 +206,288 @@ function initContactForm() {
   });
 }
 
+// ===== Project Round Slider =====
+function initProjectRoundSlider() {
+  const slider = document.querySelector('[data-project-round-slider]');
+  if (!slider) return;
+
+  const stage = slider.querySelector('[data-project-stage]');
+  const cards = Array.from(slider.querySelectorAll('.project-round-card'));
+  const prevButton = slider.querySelector('[data-project-prev]');
+  const nextButton = slider.querySelector('[data-project-next]');
+  const statusEl = slider.querySelector('[data-project-status]');
+
+  if (!stage || cards.length === 0) return;
+
+  const angleInterval = 360 / cards.length;
+  let currentAngle = 0;
+  let activeIndex = 0;
+  let dragStartX = 0;
+  let dragDeltaX = 0;
+  let isDragging = false;
+  let suppressClick = false;
+  let activeAnimationTimer = null;
+  let resizeFrame = null;
+
+  const mod = (value, length) => ((value % length) + length) % length;
+  const normalizeAngle = (angle) => {
+    const normalized = ((angle + 180) % 360 + 360) % 360 - 180;
+    return normalized === -180 ? 180 : normalized;
+  };
+
+  function getConfig() {
+    const width = window.innerWidth;
+
+    if (width <= 640) {
+      return {
+        width: 35,
+        depth: 72,
+        size: 1.95,
+        rotate: 0.36,
+        drag: 0.38,
+        minScale: 0.62,
+        scaleBoost: 0.42,
+        scalePower: 2.4,
+        verticalLift: 22
+      };
+    }
+
+    if (width <= 900) {
+      return {
+        width: 44,
+        depth: 110,
+        size: 2.25,
+        rotate: 0.44,
+        drag: 0.34,
+        minScale: 0.5,
+        scaleBoost: 0.56,
+        scalePower: 3.4,
+        verticalLift: 34
+      };
+    }
+
+    return {
+      width: 50,
+      depth: 172,
+      size: 2.8,
+      rotate: 0.56,
+      drag: 0.32,
+      minScale: 0.42,
+      scaleBoost: 0.68,
+      scalePower: 4.8,
+      verticalLift: 44
+    };
+  }
+
+  function getCardTitle(card, index) {
+    const title = card.querySelector('h3');
+    return title ? title.textContent.trim() : `Project ${index + 1}`;
+  }
+
+  function setActiveState() {
+    activeIndex = mod(Math.round(-currentAngle / angleInterval), cards.length);
+
+    cards.forEach((card, index) => {
+      const isActive = index === activeIndex;
+      card.classList.toggle('is-active', isActive);
+      card.setAttribute('aria-current', isActive ? 'true' : 'false');
+      card.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+
+      card.querySelectorAll('a, button').forEach(control => {
+        control.tabIndex = isActive ? 0 : -1;
+      });
+    });
+
+    if (statusEl) {
+      statusEl.textContent = `${getCardTitle(cards[activeIndex], activeIndex)}, ${activeIndex + 1} of ${cards.length}`;
+    }
+  }
+
+  function render(angleOffset = currentAngle) {
+    const config = getConfig();
+
+    cards.forEach((card, index) => {
+      const angle = angleInterval * index + angleOffset;
+      const normalized = normalizeAngle(angle);
+      const radians = normalized * Math.PI / 180;
+      const x = config.width * Math.sin(radians) * config.size;
+      const z = (config.depth - config.depth * Math.cos(radians)) * config.size * -1;
+      const distance = Math.min(Math.abs(normalized), 180);
+      const frontness = Math.max(0, 1 - distance / 180);
+      const depthScale = Math.pow(frontness, config.scalePower);
+      const scale = config.minScale + depthScale * config.scaleBoost;
+      const y = (1 - frontness) * config.verticalLift;
+      const rotateY = normalized * -config.rotate;
+      const opacity = distance > 170 ? 0 : 0.36 + frontness * 0.64;
+
+      card.style.transform = `translate(-50%, -50%) translate3d(${x}%, ${y}px, ${z}px) rotateY(${rotateY}deg) scale(${scale}) scale(var(--project-active-pop-scale, 1))`;
+      card.style.opacity = Math.max(0, opacity).toFixed(3);
+      card.style.zIndex = String(Math.round(1000 + frontness * 500));
+      card.classList.toggle('is-far', distance > 152);
+    });
+  }
+
+  function animateActiveCard() {
+    if (activeAnimationTimer) clearTimeout(activeAnimationTimer);
+
+    cards.forEach(card => card.classList.remove('is-expanding'));
+    activeAnimationTimer = setTimeout(() => {
+      const card = cards[activeIndex];
+      if (!card || isDragging) return;
+
+      card.classList.remove('is-expanding');
+      void card.offsetWidth;
+      card.classList.add('is-expanding');
+    }, 430);
+  }
+
+  function snapToAngle(angle) {
+    currentAngle = Math.round(angle / angleInterval) * angleInterval;
+    setActiveState();
+    render();
+    animateActiveCard();
+  }
+
+  function nearestAngleForIndex(index) {
+    const desiredAngle = -index * angleInterval;
+    const turnOffset = Math.round((currentAngle - desiredAngle) / 360);
+    return desiredAngle + turnOffset * 360;
+  }
+
+  function goToIndex(index) {
+    currentAngle = nearestAngleForIndex(mod(index, cards.length));
+    setActiveState();
+    render();
+    animateActiveCard();
+  }
+
+  function rotate(direction) {
+    currentAngle -= direction * angleInterval;
+    setActiveState();
+    render();
+    animateActiveCard();
+    slider.focus({ preventScroll: true });
+  }
+
+  function onPointerDown(event) {
+    if (event.button !== undefined && event.button !== 0) return;
+    if (event.target.closest('a, button')) return;
+
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragDeltaX = 0;
+    suppressClick = false;
+    if (activeAnimationTimer) clearTimeout(activeAnimationTimer);
+    cards.forEach(card => card.classList.remove('is-expanding'));
+    slider.classList.add('is-dragging');
+    slider.focus({ preventScroll: true });
+
+    if (stage.setPointerCapture) {
+      stage.setPointerCapture(event.pointerId);
+    }
+  }
+
+  function onPointerMove(event) {
+    if (!isDragging) return;
+
+    dragDeltaX = event.clientX - dragStartX;
+    if (Math.abs(dragDeltaX) > 3) {
+      render(currentAngle + dragDeltaX * getConfig().drag);
+      event.preventDefault();
+    }
+  }
+
+  function onPointerEnd(event) {
+    if (!isDragging) return;
+
+    const config = getConfig();
+    let targetAngle = currentAngle + dragDeltaX * config.drag;
+
+    if (
+      Math.abs(dragDeltaX) > 48 &&
+      Math.round(targetAngle / angleInterval) === Math.round(currentAngle / angleInterval)
+    ) {
+      targetAngle = currentAngle + (dragDeltaX > 0 ? angleInterval : -angleInterval);
+    }
+
+    suppressClick = Math.abs(dragDeltaX) > 8;
+    isDragging = false;
+    slider.classList.remove('is-dragging');
+
+    if (
+      stage.releasePointerCapture &&
+      stage.hasPointerCapture &&
+      stage.hasPointerCapture(event.pointerId)
+    ) {
+      stage.releasePointerCapture(event.pointerId);
+    }
+
+    snapToAngle(targetAngle);
+    setTimeout(() => {
+      suppressClick = false;
+    }, 0);
+  }
+
+  cards.forEach((card, index) => {
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('aria-roledescription', 'slide');
+    card.setAttribute('aria-label', `${index + 1} of ${cards.length}: ${getCardTitle(card, index)}`);
+    card.dataset.projectIndex = String(index);
+
+    const image = card.querySelector('img');
+    if (image) image.setAttribute('draggable', 'false');
+
+    card.addEventListener('animationend', (event) => {
+      if (event.animationName === 'projectSelectedExpand') {
+        card.classList.remove('is-expanding');
+      }
+    });
+
+    card.addEventListener('click', (event) => {
+      if (suppressClick) return;
+      if (event.target.closest('a, button') && index === activeIndex) return;
+
+      event.preventDefault();
+      if (index !== activeIndex) {
+        goToIndex(index);
+        slider.focus({ preventScroll: true });
+      }
+    });
+  });
+
+  if (prevButton) prevButton.addEventListener('click', () => rotate(-1));
+  if (nextButton) nextButton.addEventListener('click', () => rotate(1));
+
+  slider.addEventListener('keydown', (event) => {
+    if (event.target !== slider) return;
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      rotate(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      rotate(1);
+    }
+  });
+
+  stage.addEventListener('pointerdown', onPointerDown);
+  stage.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerEnd);
+  stage.addEventListener('pointercancel', onPointerEnd);
+  stage.addEventListener('lostpointercapture', onPointerEnd);
+
+  window.addEventListener('resize', () => {
+    if (resizeFrame) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = null;
+      render();
+    });
+  });
+
+  setActiveState();
+  render();
+}
+
 // ===== Clickable Cards =====
 function initClickableCards() {
   document.querySelectorAll('.card[data-href]').forEach(card => {
@@ -222,6 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNavbar();
   initMobileMenu();
+  initProjectRoundSlider();
   initScrollReveal();
   initSmoothScroll();
   initClickableCards();
