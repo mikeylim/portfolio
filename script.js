@@ -625,6 +625,170 @@ function initCustomCursor() {
   window.addEventListener('blur', hideCursor);
 }
 
+// ===== Hobby Video Preview =====
+function initHobbyVideoPreview() {
+  const preview = document.querySelector('[data-hobby-video-preview]');
+  const video = preview?.querySelector('[data-hobby-video-player]');
+  const triggers = Array.from(document.querySelectorAll('[data-hobby-video]'));
+
+  if (!preview || !video || triggers.length === 0) return;
+
+  const hoverQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const saveData = Boolean(navigator.connection?.saveData);
+  const hoverDelay = 120;
+  const edgeGap = 12;
+  const pointerOffset = 32;
+
+  let activeTrigger = null;
+  let showTimer = null;
+
+  function moveTo(x, y) {
+    preview.style.setProperty('--hobby-preview-x', `${x}px`);
+    preview.style.setProperty('--hobby-preview-y', `${y}px`);
+  }
+
+  function positionFromPointer(clientX, clientY) {
+    const width = preview.offsetWidth;
+    const height = preview.offsetHeight;
+    let x = clientX + pointerOffset;
+    let y = clientY + pointerOffset;
+
+    if (x + width > window.innerWidth - edgeGap) {
+      x = clientX - width - pointerOffset;
+    }
+
+    if (y + height > window.innerHeight - edgeGap) {
+      y = clientY - height - pointerOffset;
+    }
+
+    moveTo(
+      Math.max(edgeGap, Math.min(x, window.innerWidth - width - edgeGap)),
+      Math.max(edgeGap, Math.min(y, window.innerHeight - height - edgeGap))
+    );
+  }
+
+  function positionFromTrigger(trigger) {
+    const triggerRect = trigger.getBoundingClientRect();
+    const width = preview.offsetWidth;
+    const height = preview.offsetHeight;
+    let x = triggerRect.left + triggerRect.width / 2 - width / 2;
+    let y = triggerRect.bottom + edgeGap;
+
+    if (y + height > window.innerHeight - edgeGap) {
+      y = triggerRect.top - height - edgeGap;
+    }
+
+    moveTo(
+      Math.max(edgeGap, Math.min(x, window.innerWidth - width - edgeGap)),
+      Math.max(edgeGap, Math.min(y, window.innerHeight - height - edgeGap))
+    );
+  }
+
+  function showPreview(trigger) {
+    if (activeTrigger && activeTrigger !== trigger) {
+      activeTrigger.classList.remove('is-previewing');
+    }
+
+    activeTrigger = trigger;
+    trigger.classList.add('is-previewing');
+    video.poster = trigger.dataset.hobbyPoster || '';
+
+    if (!reducedMotionQuery.matches && !saveData) {
+      const source = trigger.dataset.hobbyVideo;
+
+      if (source && video.dataset.loadedSource !== source) {
+        video.src = source;
+        video.dataset.loadedSource = source;
+        video.load();
+      }
+
+      video.play().catch(() => {});
+    }
+
+    preview.classList.add('is-visible');
+    preview.setAttribute('aria-hidden', 'false');
+  }
+
+  function hidePreview() {
+    if (showTimer) {
+      clearTimeout(showTimer);
+      showTimer = null;
+    }
+
+    if (activeTrigger) {
+      activeTrigger.classList.remove('is-previewing');
+      activeTrigger = null;
+    }
+
+    video.pause();
+    if (video.readyState > 0) video.currentTime = 0;
+
+    preview.classList.remove('is-visible');
+    preview.setAttribute('aria-hidden', 'true');
+  }
+
+  triggers.forEach(trigger => {
+    trigger.addEventListener('pointerenter', event => {
+      if (!hoverQuery.matches || event.pointerType === 'touch') return;
+
+      positionFromPointer(event.clientX, event.clientY);
+      showTimer = setTimeout(() => {
+        showTimer = null;
+        showPreview(trigger);
+      }, hoverDelay);
+    });
+
+    trigger.addEventListener('pointermove', event => {
+      if (activeTrigger === trigger || showTimer) {
+        positionFromPointer(event.clientX, event.clientY);
+      }
+    });
+
+    trigger.addEventListener('pointerleave', hidePreview);
+
+    trigger.addEventListener('focus', () => {
+      if (!hoverQuery.matches) return;
+      positionFromTrigger(trigger);
+      showPreview(trigger);
+    });
+
+    trigger.addEventListener('blur', hidePreview);
+
+    trigger.addEventListener('click', () => {
+      if (hoverQuery.matches) return;
+
+      if (activeTrigger === trigger) {
+        hidePreview();
+      } else {
+        positionFromTrigger(trigger);
+        showPreview(trigger);
+      }
+    });
+
+    trigger.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        hidePreview();
+        trigger.blur();
+      }
+    });
+  });
+
+  document.addEventListener('pointerdown', event => {
+    if (
+      activeTrigger &&
+      !hoverQuery.matches &&
+      event.target !== activeTrigger
+    ) {
+      hidePreview();
+    }
+  });
+
+  window.addEventListener('scroll', hidePreview, { passive: true });
+  window.addEventListener('resize', hidePreview);
+  window.addEventListener('blur', hidePreview);
+}
+
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -636,6 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initClickableCards();
   initContactForm();
   initCustomCursor();
+  initHobbyVideoPreview();
 
   // Start typing animation
   const typingEl = document.getElementById('typing-text');

@@ -1055,7 +1055,14 @@
 						</div>
 						<div class="flex flex-wrap gap-2">
 							<span class="skill-tag">Ice Skating</span>
-							<span class="skill-tag">Snowboarding</span>
+							<button
+								type="button"
+								class="skill-tag hobby-preview-trigger"
+								data-hobby-video="assets/hobbies/snowboarding-preview.mp4"
+								data-hobby-poster="assets/hobbies/snowboarding-poster.jpg"
+								aria-label="Preview snowboarding video">
+								Snowboarding
+							</button>
 							<span class="skill-tag">Snowshoeing</span>
 							<span class="skill-tag">Snow Tubing</span>
 						</div>
@@ -1430,6 +1437,20 @@
 				</div>
 			</div>
 		</footer>
+
+		<div
+			class="hobby-video-preview"
+			data-hobby-video-preview
+			aria-hidden="true">
+			<div class="hobby-video-preview-frame">
+				<video
+					data-hobby-video-player
+					muted
+					loop
+					playsinline
+					preload="none"></video>
+			</div>
+		</div>
 
 		<div class="site-cursor" data-site-cursor aria-hidden="true">
 			<span class="site-cursor-ring"></span>

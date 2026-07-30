@@ -920,6 +920,85 @@ section {
 	transform: translateY(-1px);
 }
 
+.hobby-preview-trigger {
+	appearance: none;
+	font-family: inherit;
+	line-height: inherit;
+	cursor: pointer;
+}
+
+.hobby-preview-trigger:focus-visible,
+.hobby-preview-trigger.is-previewing {
+	border-color: var(--accent);
+	color: var(--accent);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+}
+
+.hobby-video-preview {
+	--hobby-preview-x: -400px;
+	--hobby-preview-y: -400px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 9500;
+	width: min(10.5rem, calc(100vw - 1.5rem));
+	aspect-ratio: 9 / 16;
+	opacity: 0;
+	pointer-events: none;
+	transform: translate3d(
+		var(--hobby-preview-x),
+		var(--hobby-preview-y),
+		0
+	);
+	transition:
+		opacity 0.18s ease,
+		transform 0.08s linear;
+	will-change: transform;
+}
+
+.hobby-video-preview-frame {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	border: 1px solid var(--accent);
+	border-radius: 0.5rem;
+	background-color: var(--bg-card);
+	box-shadow:
+		0 22px 55px rgba(0, 0, 0, 0.34),
+		0 0 28px rgba(56, 189, 248, 0.16);
+	transform: translateY(0.35rem) scale(0.94);
+	transition: transform 0.18s ease;
+}
+
+.hobby-video-preview video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.hobby-video-preview.is-visible {
+	opacity: 1;
+}
+
+.hobby-video-preview.is-visible .hobby-video-preview-frame {
+	transform: translateY(0) scale(1);
+}
+
+@media (max-width: 640px) {
+	.hobby-video-preview {
+		width: min(9.5rem, calc(100vw - 1.5rem));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hobby-video-preview,
+	.hobby-video-preview-frame {
+		transition: none;
+	}
+}
+
 /* ===== Buttons ===== */
 .btn-primary {
 	display: inline-flex;
