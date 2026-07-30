@@ -183,7 +183,7 @@ body {
 	html.has-custom-cursor body *,
 	html.has-custom-cursor body *::before,
 	html.has-custom-cursor body *::after {
-		cursor: url("assets/transparent-cursor.png") 0 0, none !important;
+		cursor: none !important;
 	}
 
 	html.has-custom-cursor :is(a, img) {
@@ -308,15 +308,16 @@ body {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	transform: scale(0.5);
 }
 
 .profile-photo-front {
+	object-fit: contain;
 	object-position: center;
+	background-color: #edf4fa;
 }
 
 .profile-photo-back {
-	object-position: 54% 48%;
+	object-position: 48% 48%;
 }
 
 .profile-photo:is(:hover, :focus-visible) {
