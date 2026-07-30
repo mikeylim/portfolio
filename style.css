@@ -56,6 +56,152 @@ body {
 	border: 0;
 }
 
+/* ===== Custom Cursor ===== */
+.site-cursor {
+	--cursor-x: -100px;
+	--cursor-y: -100px;
+	--cursor-ring-x: -100px;
+	--cursor-ring-y: -100px;
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	overflow: visible;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+
+.site-cursor-icon,
+.site-cursor-ring {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	will-change: transform;
+}
+
+.site-cursor-icon {
+	width: 32px;
+	height: 32px;
+	background: url("assets/starcraft-original-cursor.png") 0 0 / 192px 32px no-repeat;
+	filter: drop-shadow(0 2px 4px rgba(2, 132, 199, 0.42));
+	image-rendering: pixelated;
+	transform: translate3d(var(--cursor-x), var(--cursor-y), 0);
+	animation: starcraftCursorFrames 0.833s steps(1, end) infinite;
+	animation-play-state: paused;
+}
+
+.site-cursor-ring {
+	width: 30px;
+	height: 30px;
+	border: 1px solid var(--accent);
+	border-radius: 50%;
+	background-color: rgba(56, 189, 248, 0.04);
+	box-shadow:
+		0 0 16px rgba(56, 189, 248, 0.2),
+		inset 0 0 10px rgba(56, 189, 248, 0.08);
+	opacity: 0.62;
+	transform: translate3d(var(--cursor-ring-x), var(--cursor-ring-y), 0) translate(-50%, -50%);
+	transition:
+		width 0.2s ease,
+		height 0.2s ease,
+		border-radius 0.2s ease,
+		background-color 0.2s ease,
+		opacity 0.2s ease;
+}
+
+.site-cursor.is-visible:not(.is-native) {
+	opacity: 1;
+}
+
+.site-cursor.is-visible .site-cursor-icon {
+	animation-play-state: running;
+}
+
+.site-cursor.is-interactive .site-cursor-ring {
+	width: 44px;
+	height: 44px;
+	background-color: rgba(56, 189, 248, 0.11);
+	opacity: 0.9;
+}
+
+.site-cursor.is-drag-zone .site-cursor-ring {
+	width: 50px;
+	height: 28px;
+	border-radius: 45%;
+	background-color: rgba(56, 189, 248, 0.09);
+	opacity: 0.88;
+}
+
+.site-cursor.is-pressed .site-cursor-ring {
+	width: 22px;
+	height: 22px;
+	background-color: rgba(56, 189, 248, 0.2);
+	opacity: 1;
+}
+
+@keyframes starcraftCursorFrames {
+	0%,
+	49.99% {
+		background-position: 0 0;
+	}
+
+	50%,
+	59.99% {
+		background-position: -32px 0;
+	}
+
+	60%,
+	69.99% {
+		background-position: -64px 0;
+	}
+
+	70%,
+	79.99% {
+		background-position: -96px 0;
+	}
+
+	80%,
+	89.99% {
+		background-position: -128px 0;
+	}
+
+	90%,
+	100% {
+		background-position: -160px 0;
+	}
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.site-cursor {
+		display: block;
+	}
+
+	html.has-custom-cursor,
+	html.has-custom-cursor body,
+	html.has-custom-cursor body *,
+	html.has-custom-cursor body *::before,
+	html.has-custom-cursor body *::after {
+		cursor: url("assets/transparent-cursor.png") 0 0, none !important;
+	}
+
+	html.has-custom-cursor :is(a, img) {
+		-webkit-user-drag: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-cursor-icon {
+		animation: none;
+	}
+
+	.site-cursor,
+	.site-cursor-ring {
+		transition: none;
+	}
+}
+
 /* ===== Navbar ===== */
 .navbar {
 	background-color: var(--bg-primary);
@@ -162,6 +308,7 @@ body {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	transform: scale(0.5);
 }
 
 .profile-photo-front {

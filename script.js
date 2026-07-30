@@ -499,6 +499,132 @@ function initClickableCards() {
   });
 }
 
+// ===== Custom Cursor =====
+function initCustomCursor() {
+  const cursor = document.querySelector('[data-site-cursor]');
+  const pointerQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+  if (!cursor || !pointerQuery.matches) return;
+
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const interactiveSelector =
+    'a, button, label, [role="button"], [data-href], .project-round-card';
+
+  let pointerX = -100;
+  let pointerY = -100;
+  let ringX = -100;
+  let ringY = -100;
+  let hasPosition = false;
+  let animationFrame = null;
+
+  function renderRing() {
+    if (!hasPosition) {
+      animationFrame = null;
+      return;
+    }
+
+    const followStrength = reducedMotionQuery.matches ? 1 : 0.18;
+    ringX += (pointerX - ringX) * followStrength;
+    ringY += (pointerY - ringY) * followStrength;
+
+    cursor.style.setProperty('--cursor-ring-x', `${ringX}px`);
+    cursor.style.setProperty('--cursor-ring-y', `${ringY}px`);
+
+    if (
+      Math.abs(pointerX - ringX) < 0.1 &&
+      Math.abs(pointerY - ringY) < 0.1
+    ) {
+      ringX = pointerX;
+      ringY = pointerY;
+      animationFrame = null;
+      return;
+    }
+
+    animationFrame = requestAnimationFrame(renderRing);
+  }
+
+  function updateCursorState(target) {
+    const element = target instanceof Element ? target : null;
+
+    cursor.classList.toggle(
+      'is-interactive',
+      Boolean(element?.closest(interactiveSelector))
+    );
+    cursor.classList.toggle(
+      'is-drag-zone',
+      Boolean(element?.closest('[data-project-stage]'))
+    );
+  }
+
+  function hideCursor() {
+    cursor.classList.remove('is-visible', 'is-pressed');
+    hasPosition = false;
+
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
+  }
+
+  document.documentElement.classList.add('has-custom-cursor');
+
+  document.addEventListener(
+    'pointermove',
+    event => {
+      if (event.pointerType === 'touch') return;
+
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+
+      if (!hasPosition) {
+        ringX = pointerX;
+        ringY = pointerY;
+        hasPosition = true;
+      }
+
+      cursor.style.setProperty('--cursor-x', `${pointerX}px`);
+      cursor.style.setProperty('--cursor-y', `${pointerY}px`);
+      cursor.classList.add('is-visible');
+      updateCursorState(event.target);
+
+      if (!animationFrame) {
+        animationFrame = requestAnimationFrame(renderRing);
+      }
+    },
+    { passive: true }
+  );
+
+  document.addEventListener('dragstart', event => {
+    const element = event.target instanceof Element ? event.target : null;
+
+    if (element?.closest('a, img')) {
+      event.preventDefault();
+    }
+  });
+
+  document.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch') {
+      cursor.classList.add('is-pressed');
+    }
+  });
+
+  document.addEventListener('pointerup', () => {
+    cursor.classList.remove('is-pressed');
+  });
+
+  document.addEventListener('pointercancel', () => {
+    cursor.classList.remove('is-pressed');
+  });
+
+  document.addEventListener('mouseout', event => {
+    if (!event.relatedTarget) {
+      hideCursor();
+    }
+  });
+
+  window.addEventListener('blur', hideCursor);
+}
+
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -509,6 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
   initClickableCards();
   initContactForm();
+  initCustomCursor();
 
   // Start typing animation
   const typingEl = document.getElementById('typing-text');
