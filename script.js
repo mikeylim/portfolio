@@ -648,7 +648,19 @@ function initHobbyVideoPreview() {
     preview.style.setProperty('--hobby-preview-y', `${y}px`);
   }
 
-  function positionFromPointer(clientX, clientY) {
+  function configurePreview(trigger) {
+    preview.style.setProperty(
+      '--hobby-preview-aspect',
+      trigger.dataset.hobbyAspect || '16 / 9'
+    );
+    preview.style.setProperty(
+      '--hobby-preview-width',
+      trigger.dataset.hobbyWidth || '15rem'
+    );
+  }
+
+  function positionFromPointer(trigger, clientX, clientY) {
+    configurePreview(trigger);
     const width = preview.offsetWidth;
     const height = preview.offsetHeight;
     let x = clientX + pointerOffset;
@@ -669,6 +681,7 @@ function initHobbyVideoPreview() {
   }
 
   function positionFromTrigger(trigger) {
+    configurePreview(trigger);
     const triggerRect = trigger.getBoundingClientRect();
     const width = preview.offsetWidth;
     const height = preview.offsetHeight;
@@ -732,7 +745,7 @@ function initHobbyVideoPreview() {
     trigger.addEventListener('pointerenter', event => {
       if (!hoverQuery.matches || event.pointerType === 'touch') return;
 
-      positionFromPointer(event.clientX, event.clientY);
+      positionFromPointer(trigger, event.clientX, event.clientY);
       showTimer = setTimeout(() => {
         showTimer = null;
         showPreview(trigger);
@@ -741,7 +754,7 @@ function initHobbyVideoPreview() {
 
     trigger.addEventListener('pointermove', event => {
       if (activeTrigger === trigger || showTimer) {
-        positionFromPointer(event.clientX, event.clientY);
+        positionFromPointer(trigger, event.clientX, event.clientY);
       }
     });
 

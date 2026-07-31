@@ -938,12 +938,14 @@ section {
 .hobby-video-preview {
 	--hobby-preview-x: -400px;
 	--hobby-preview-y: -400px;
+	--hobby-preview-width: 15rem;
+	--hobby-preview-aspect: 16 / 9;
 	position: fixed;
 	top: 0;
 	left: 0;
 	z-index: 9500;
-	width: min(10.5rem, calc(100vw - 1.5rem));
-	aspect-ratio: 9 / 16;
+	width: min(var(--hobby-preview-width), calc(100vw - 1.5rem));
+	aspect-ratio: var(--hobby-preview-aspect);
 	opacity: 0;
 	pointer-events: none;
 	transform: translate3d(
@@ -984,12 +986,6 @@ section {
 
 .hobby-video-preview.is-visible .hobby-video-preview-frame {
 	transform: translateY(0) scale(1);
-}
-
-@media (max-width: 640px) {
-	.hobby-video-preview {
-		width: min(9.5rem, calc(100vw - 1.5rem));
-	}
 }
 
 @media (prefers-reduced-motion: reduce) {
