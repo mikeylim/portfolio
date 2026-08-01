@@ -922,9 +922,53 @@ section {
 
 .hobby-preview-trigger {
 	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	position: relative;
 	font-family: inherit;
 	line-height: inherit;
 	cursor: pointer;
+}
+
+.hobby-preview-icon {
+	position: relative;
+	display: inline-grid;
+	place-items: center;
+	width: 1.125rem;
+	height: 1.125rem;
+	padding-left: 0.0625rem;
+	flex: 0 0 auto;
+	border: 1px solid var(--accent);
+	border-radius: 50%;
+	color: var(--accent);
+	font-size: 0.45rem;
+	line-height: 1;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		transform 0.2s ease;
+}
+
+.hobby-preview-icon::after {
+	content: "";
+	position: absolute;
+	inset: -1px;
+	border: 1px solid var(--accent);
+	border-radius: inherit;
+	opacity: 0;
+}
+
+.skill-category.visible .hobby-preview-icon::after {
+	animation: hobbyPreviewHint 0.9s ease-out 0.45s 2;
+}
+
+.hobby-preview-trigger:hover .hobby-preview-icon,
+.hobby-preview-trigger:focus-visible .hobby-preview-icon,
+.hobby-preview-trigger.is-previewing .hobby-preview-icon {
+	background-color: var(--accent);
+	color: var(--bg-primary);
+	transform: scale(1.1);
 }
 
 .hobby-preview-trigger:focus-visible,
@@ -990,8 +1034,29 @@ section {
 
 @media (prefers-reduced-motion: reduce) {
 	.hobby-video-preview,
-	.hobby-video-preview-frame {
+	.hobby-video-preview-frame,
+	.hobby-preview-icon {
 		transition: none;
+	}
+
+	.skill-category.visible .hobby-preview-icon::after {
+		animation: none;
+	}
+}
+
+@keyframes hobbyPreviewHint {
+	0% {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	35% {
+		opacity: 0.65;
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.9);
 	}
 }
 
