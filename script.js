@@ -38,6 +38,84 @@ class TypingAnimation {
   }
 }
 
+// ===== Analytics =====
+function trackEvent(eventName, parameters = {}) {
+  if (typeof window.gtag !== 'function') return;
+  window.gtag('event', eventName, parameters);
+}
+
+function getInteractionLocation(element) {
+  if (element.closest('#mobile-menu')) return 'mobile_navigation';
+  if (element.closest('#navbar')) return 'navigation';
+  if (element.closest('#hero')) return 'hero';
+  if (element.closest('#projects')) return 'projects';
+  if (element.closest('#hobbies')) return 'hobbies';
+  if (element.closest('#contact')) return 'contact';
+  if (element.closest('footer')) return 'footer';
+  return 'page';
+}
+
+function initAnalytics() {
+  document.addEventListener('click', event => {
+    const element = event.target instanceof Element ? event.target : null;
+    const link = element?.closest('a');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    const linkLocation = getInteractionLocation(link);
+    const projectCard = link.closest('.project-round-card');
+
+    if (projectCard) {
+      if (event.defaultPrevented || !projectCard.classList.contains('is-active')) {
+        return;
+      }
+
+      const projectName = projectCard.querySelector('h3')?.textContent.trim();
+      const linkText = link.textContent.replace(/\s+/g, ' ').trim();
+      const linkType = /live demo/i.test(linkText) ? 'live_demo' : 'source_code';
+
+      trackEvent('project_link_click', {
+        project_name: projectName || 'unknown_project',
+        link_type: linkType,
+        link_url: link.href,
+      });
+      return;
+    }
+
+    if (/MikeDohyunLim_resume\.pdf(?:$|[?#])/i.test(href)) {
+      trackEvent('resume_download', {
+        link_location: linkLocation,
+        file_name: 'MikeDohyunLim_resume.pdf',
+      });
+      return;
+    }
+
+    if (href.startsWith('mailto:')) {
+      trackEvent('contact_link_click', {
+        contact_method: 'email',
+        link_location: linkLocation,
+      });
+      return;
+    }
+
+    const url = new URL(link.href, window.location.href);
+    const socialPlatforms = {
+      'github.com': 'github',
+      'www.linkedin.com': 'linkedin',
+    };
+    const platform = socialPlatforms[url.hostname];
+
+    if (platform) {
+      trackEvent('social_link_click', {
+        platform,
+        link_location: linkLocation,
+      });
+    }
+  });
+}
+
 // ===== Theme Toggle =====
 function initTheme() {
   const toggle = document.getElementById('theme-toggle');
@@ -149,8 +227,17 @@ function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
+      const href = this.getAttribute('href');
+      const target = document.querySelector(href);
       if (target) {
+        const eventName = this.closest('#hero') && href === '#projects'
+          ? 'view_projects'
+          : 'section_navigation';
+
+        trackEvent(eventName, {
+          section_id: target.id,
+          link_location: getInteractionLocation(this),
+        });
         target.scrollIntoView({ behavior: 'smooth' });
       }
     });
@@ -177,6 +264,9 @@ function initContactForm() {
       });
 
       if (res.ok) {
+        trackEvent('generate_lead', {
+          form_name: 'contact_form',
+        });
         form.reset();
         btn.innerHTML = 'Message Sent!';
         btn.style.backgroundColor = '#22c55e';
@@ -284,6 +374,14 @@ function initProjectRoundSlider() {
     return title ? title.textContent.trim() : `Project ${index + 1}`;
   }
 
+  function trackProjectNavigation(interactionMethod, direction) {
+    trackEvent('project_carousel_navigation', {
+      interaction_method: interactionMethod,
+      direction,
+      project_name: getCardTitle(cards[activeIndex], activeIndex),
+    });
+  }
+
   function setActiveState() {
     activeIndex = mod(Math.round(-currentAngle / angleInterval), cards.length);
 
@@ -361,11 +459,15 @@ function initProjectRoundSlider() {
     animateActiveCard();
   }
 
-  function rotate(direction) {
+  function rotate(direction, interactionMethod) {
     currentAngle -= direction * angleInterval;
     setActiveState();
     render();
     animateActiveCard();
+    trackProjectNavigation(
+      interactionMethod,
+      direction < 0 ? 'previous' : 'next'
+    );
     slider.focus({ preventScroll: true });
   }
 
@@ -401,6 +503,7 @@ function initProjectRoundSlider() {
     if (!isDragging) return;
 
     const config = getConfig();
+    const previousIndex = activeIndex;
     let targetAngle = currentAngle + dragDeltaX * config.drag;
 
     if (
@@ -423,6 +526,12 @@ function initProjectRoundSlider() {
     }
 
     snapToAngle(targetAngle);
+    if (suppressClick && activeIndex !== previousIndex) {
+      trackProjectNavigation(
+        'drag',
+        dragDeltaX > 0 ? 'previous' : 'next'
+      );
+    }
     setTimeout(() => {
       suppressClick = false;
     }, 0);
@@ -450,23 +559,24 @@ function initProjectRoundSlider() {
       event.preventDefault();
       if (index !== activeIndex) {
         goToIndex(index);
+        trackProjectNavigation('card', 'direct');
         slider.focus({ preventScroll: true });
       }
     });
   });
 
-  if (prevButton) prevButton.addEventListener('click', () => rotate(-1));
-  if (nextButton) nextButton.addEventListener('click', () => rotate(1));
+  if (prevButton) prevButton.addEventListener('click', () => rotate(-1, 'button'));
+  if (nextButton) nextButton.addEventListener('click', () => rotate(1, 'button'));
 
   slider.addEventListener('keydown', (event) => {
     if (event.target !== slider) return;
 
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
-      rotate(-1);
+      rotate(-1, 'keyboard');
     } else if (event.key === 'ArrowRight') {
       event.preventDefault();
-      rotate(1);
+      rotate(1, 'keyboard');
     }
   });
 
@@ -642,6 +752,7 @@ function initHobbyVideoPreview() {
 
   let activeTrigger = null;
   let showTimer = null;
+  const trackedPreviews = new Set();
 
   function moveTo(x, y) {
     preview.style.setProperty('--hobby-preview-x', `${x}px`);
@@ -698,7 +809,7 @@ function initHobbyVideoPreview() {
     );
   }
 
-  function showPreview(trigger) {
+  function showPreview(trigger, interactionMethod) {
     if (activeTrigger && activeTrigger !== trigger) {
       activeTrigger.classList.remove('is-previewing');
     }
@@ -721,6 +832,20 @@ function initHobbyVideoPreview() {
 
     preview.classList.add('is-visible');
     preview.setAttribute('aria-hidden', 'false');
+
+    const label = trigger.getAttribute('aria-label') || trigger.textContent;
+    const hobbyName = label
+      .replace(/^Preview\s+/i, '')
+      .replace(/\s+video$/i, '')
+      .trim();
+
+    if (!trackedPreviews.has(hobbyName)) {
+      trackedPreviews.add(hobbyName);
+      trackEvent('hobby_preview', {
+        hobby_name: hobbyName,
+        interaction_method: interactionMethod,
+      });
+    }
   }
 
   function hidePreview() {
@@ -748,7 +873,7 @@ function initHobbyVideoPreview() {
       positionFromPointer(trigger, event.clientX, event.clientY);
       showTimer = setTimeout(() => {
         showTimer = null;
-        showPreview(trigger);
+        showPreview(trigger, 'hover');
       }, hoverDelay);
     });
 
@@ -763,7 +888,7 @@ function initHobbyVideoPreview() {
     trigger.addEventListener('focus', () => {
       if (!hoverQuery.matches) return;
       positionFromTrigger(trigger);
-      showPreview(trigger);
+      showPreview(trigger, 'focus');
     });
 
     trigger.addEventListener('blur', hidePreview);
@@ -775,7 +900,7 @@ function initHobbyVideoPreview() {
         hidePreview();
       } else {
         positionFromTrigger(trigger);
-        showPreview(trigger);
+        showPreview(trigger, 'tap');
       }
     });
 
@@ -804,6 +929,7 @@ function initHobbyVideoPreview() {
 
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
+  initAnalytics();
   initTheme();
   initNavbar();
   initMobileMenu();
